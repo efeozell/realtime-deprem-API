@@ -170,16 +170,45 @@
 
       function showDepremBildirimi(deprem) {
         // Bilgileri güncelle
+
+        if (!deprem || typeof deprem !== "object") {
+          console.error("Invalid earthquake data received:", deprem);
+          return;
+        }
+
+        const { il, ilce, buyuklukDeprem, zaman, derinlik } = deprem;
+        if (
+          !il ||
+          !ilce ||
+          !buyukluk ||
+          buyuklukDeprem === undefined ||
+          !zaman ||
+          !derinlik ||
+          derinlik === undefined
+        ) {
+          console.error("Eksik deprem verisi:", deprem);
+          return;
+        }
+
         document.getElementById("konum").textContent = `${deprem.il} - ${deprem.ilce}`;
         document.getElementById("buyukluk").textContent = `${deprem.buyukluk} ML`;
 
         const tarih = new Date(deprem.zaman);
-        document.getElementById("zaman").textContent = tarih.toLocaleString("tr-TR");
+        if (isNaN(tarih.getTime())) {
+          console.error("Invalid date format:", zaman);
+          document.getElementById("zaman").textContent = "-";
+        } else {
+          document.getElementById("zaman").textContent = tarih.toLocaleString("tr-TR");
+        }
         document.getElementById("derinlik").textContent = `${deprem.derinlik} km`;
 
         // Büyüklüğe göre renk ayarla
         const buyukluk = parseFloat(deprem.buyukluk);
         const bildirim = container.querySelector(".deprem-bildirim");
+        if (isNaN(buyukluk)) {
+          console.error("Invalid magnitude:", deprem.buyukluk);
+          return;
+        }
 
         if (buyukluk >= 5.0) {
           bildirim.style.background = "linear-gradient(135deg, #8e44ad, #9b59b6)";
