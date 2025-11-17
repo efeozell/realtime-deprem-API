@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deprem Bildirimleri - OBS Overlay</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: transparent;
+        font-family: "Arial", sans-serif;
+        overflow: hidden;
+      }
+
+      .deprem-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        min-width: 400px;
+        max-width: 500px;
+        transform: translateX(100%);
+        transition: transform 0.5s ease-in-out;
+      }
+
+      .deprem-container.show {
+        transform: translateX(0);
+      }
+
+      .deprem-bildirim {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border-left: 5px solid #fff;
+      }
+
+      .deprem-baslik {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+      }
+
+      .deprem-baslik::before {
+        content: "🚨";
+        margin-right: 10px;
+        font-size: 20px;
+      }
+
+      .deprem-bilgi {
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .buyukluk {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+
+      .konum {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .detaylar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        font-size: 12px;
+      }
+
+      .detay-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px 8px;
+        border-radius: 3px;
+      }
+
+      .status {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        color: #2ecc71;
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 5px 10px;
+        border-radius: 15px;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translateX(-5px);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translateX(5px);
+        }
+      }
+
+      .shake {
+        animation: shake 0.6s ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deprem-container" id="depremContainer">
+      <div class="deprem-bildirim">
+        <div class="deprem-baslik">DEPREM UYARISI</div>
+        <div class="konum" id="konum">-</div>
+        <div class="buyukluk" id="buyukluk">-</div>
+        <div class="detaylar">
+          <div class="detay-item">
+            <strong>Zaman:</strong><br />
+            <span id="zaman">-</span>
+          </div>
+          <div class="detay-item">
+            <strong>Derinlik:</strong><br />
+            <span id="derinlik">-</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status">Bağlantı kuruluyor...</div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const container = document.getElementById("depremContainer");
+      const status = document.getElementById("status");
+
+      // Bağlantı durumu
+      socket.on("connect", () => {
+        status.textContent = "🟢 Bağlı - Depremler dinleniyor";
+        status.style.color = "#2ecc71";
+      });
+
+      socket.on("disconnect", () => {
+        status.textContent = "🔴 Bağlantı koptu";
+        status.style.color = "#e74c3c";
+      });
+
+      // Yeni deprem bildirimi
+      socket.on("yeni_deprem", (data) => {
+        showDepremBildirimi(data);
+      });
+
+      function showDepremBildirimi(deprem) {
+        // Bilgileri güncelle
+        document.getElementById("konum").textContent = `${deprem.il} - ${deprem.ilce}`;
+        document.getElementById("buyukluk").textContent = `${deprem.buyukluk} ML`;
+
+        const tarih = new Date(deprem.zaman);
+        document.getElementById("zaman").textContent = tarih.toLocaleString("tr-TR");
+        document.getElementById("derinlik").textContent = `${deprem.derinlik} km`;
+
+        // Büyüklüğe göre renk ayarla
+        const buyukluk = parseFloat(deprem.buyukluk);
+        const bildirim = container.querySelector(".deprem-bildirim");
+
+        if (buyukluk >= 5.0) {
+          bildirim.style.background = "linear-gradient(135deg, #8e44ad, #9b59b6)";
+        } else if (buyukluk >= 4.0) {
+          bildirim.style.background = "linear-gradient(135deg, #e67e22, #f39c12)";
+        } else {
+          bildirim.style.background = "linear-gradient(135deg, #e74c3c, #c0392b)";
+        }
+
+        // Bildirimi göster
+        container.classList.add("show");
+        container.classList.add("shake");
+
+        // Titreşimi kaldır
+        setTimeout(() => {
+          container.classList.remove("shake");
+        }, 600);
+
+        // 10 saniye sonra gizle
+        setTimeout(() => {
+          container.classList.remove("show");
+        }, 10000);
+      }
+
+      // Test için (geliştirme aşamasında)
+      //   setTimeout(() => {
+      //     showDepremBildirimi({
+      //       il: "Denizli",
+      //       ilce: "Pamukkale",
+      //       buyukluk: 4.2,
+      //       zaman: new Date().toISOString(),
+      //       derinlik: 8.8,
+      //     });
+      //   }, 2000);
+    </script>
+  </body>
+</html>
