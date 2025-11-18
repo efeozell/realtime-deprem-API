@@ -57,10 +57,15 @@ app.get("/", (req, res) => {
 
 // OBS Overlay endpoint'i
 app.get("/obs-overlay", (req, res) => {
-  // Cache'i engellemek için headers ekle
+  // Cache'i engellemek ve autoplay'i etkinleştirmek için headers
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
+
+  // OBS Browser Source için autoplay permissions
+  res.setHeader("Feature-Policy", "autoplay 'self'");
+  res.setHeader("Permissions-Policy", "autoplay=self");
+  res.setHeader("X-Frame-Options", "ALLOWALL");
 
   res.sendFile(path.join(__dirname, "public", "obs-overlay.html"));
 });

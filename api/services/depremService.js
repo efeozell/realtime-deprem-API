@@ -15,8 +15,25 @@ class DepremService {
 
     this.emscSocket = new WebSocket(EMSC_WEBSOCKET_URL);
 
+    let heartbeatInterval;
+
+    const startHeartbeat = () => {
+      clearInterval(heartbeatInterval);
+
+      heartbeatInterval = setInterval(() => {
+        if (this.emscSocket && this.emscSocket.readyState === WebSocket.OPEN) {
+          this.emscSocket.ping();
+        }
+      }, 30000);
+    };
+
     this.emscSocket.on("open", () => {
       console.log("[GOZCU] EMSC WebSocket yayinina baglandi. Depremler dinleniyor...");
+      startHeartbeat();
+    });
+
+    this.emscSocket.on("pong", () => {
+      console.log("[GOZCU] EMSC WebSocket pong alindi. (Baglantı canlı)");
     });
 
     this.emscSocket.on("message", async (data) => {
@@ -36,11 +53,15 @@ class DepremService {
 
     this.emscSocket.on("close", () => {
       console.warn("[GOZCU] EMSC baglantisi koptu. 10 saniye icinde yeniden baglaniliyor...");
+      clearInterval(heartbeatInterval);
+      console.log("[GOZCU] 10 saniye icinde yeniden baglanilacak...");
       setTimeout(() => this.connect(), 10000);
     });
 
     this.emscSocket.on("error", (error) => {
       console.log("[GOZCU] WebSocket hatasi: ", error.message);
+
+      this.emscSocket.terminate();
     });
   }
 
@@ -52,6 +73,7 @@ class DepremService {
     // Turkey kontrolü ve büyüklük filtresi
     const turkeydeDepremMi = p.flynn_region && p.flynn_region.toLowerCase().includes("turkey");
 
+    //TODO: Buyukluk ayarlanacak
     if (buyukluk >= 0.5 && turkeydeDepremMi) {
       let adresBilgisi = { il: p.flynn_region, ilce: "Bilinmiyor" };
 
