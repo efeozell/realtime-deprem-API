@@ -63,9 +63,9 @@ app.get("/obs-overlay", (req, res) => {
   res.setHeader("Expires", "0");
 
   // OBS Browser Source için autoplay permissions
-  res.setHeader("Feature-Policy", "autoplay 'self'");
   res.setHeader("Permissions-Policy", "autoplay=self");
   res.setHeader("X-Frame-Options", "ALLOWALL");
+  res.setHeader("Content-Security-Policy", "frame-ancestors *");
 
   res.sendFile(path.join(__dirname, "public", "obs-overlay.html"));
 });

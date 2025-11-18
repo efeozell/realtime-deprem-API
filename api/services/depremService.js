@@ -8,6 +8,7 @@ class DepremService {
     this.io = io;
     this.apiCallback = apiCallback;
     this.emscSocket = null;
+    this.heartbeatInterval = null;
   }
 
   connect() {
@@ -15,12 +16,10 @@ class DepremService {
 
     this.emscSocket = new WebSocket(EMSC_WEBSOCKET_URL);
 
-    let heartbeatInterval;
-
     const startHeartbeat = () => {
-      clearInterval(heartbeatInterval);
+      clearInterval(this.heartbeatInterval);
 
-      heartbeatInterval = setInterval(() => {
+      this.heartbeatInterval = setInterval(() => {
         if (this.emscSocket && this.emscSocket.readyState === WebSocket.OPEN) {
           this.emscSocket.ping();
         }
@@ -53,7 +52,7 @@ class DepremService {
 
     this.emscSocket.on("close", () => {
       console.warn("[GOZCU] EMSC baglantisi koptu. 10 saniye icinde yeniden baglaniliyor...");
-      clearInterval(heartbeatInterval);
+      clearInterval(this.heartbeatInterval);
       console.log("[GOZCU] 10 saniye icinde yeniden baglanilacak...");
       setTimeout(() => this.connect(), 10000);
     });
