@@ -43,6 +43,7 @@ app.get("/", (req, res) => {
       "GET /": "API Bilgileri",
       "GET /api/deprem-dinle": "HTTP API - Deprem bildirimlerini JSON stream olarak dinle",
       "GET /api/docs": "API Dokümantasyonu ve kullanım örnekleri",
+      "GET /test-alert": "Manuel test deprem bildirimi gönder (API + OBS)",
       "GET /obs-overlay": "OBS Browser Source için overlay sayfası",
       "GET /health": "Sistem durumu",
       "WebSocket /": "Realtime deprem bildirimleri (Socket.IO)",
@@ -56,6 +57,11 @@ app.get("/", (req, res) => {
 
 // OBS Overlay endpoint'i
 app.get("/obs-overlay", (req, res) => {
+  // Cache'i engellemek için headers ekle
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
   res.sendFile(path.join(__dirname, "public", "obs-overlay.html"));
 });
 
@@ -97,6 +103,38 @@ app.get("/api/deprem-dinle", (req, res) => {
   req.on("error", (error) => {
     activeAPIConnections.delete(res);
     console.error("[API] API baglanti hatasi:", error);
+  });
+});
+
+app.get("/test-alert", (req, res) => {
+  const testData = {
+    buyukluk: 4.5,
+    il: "Istanbul",
+    ilce: "Kadikoy",
+    zaman: new Date().toISOString(),
+    derinlik: 10,
+    tamBolgeAdi: "MARMARA SEA",
+  };
+
+  console.log(`[TEST] Manuel test depremi gonderiliyor: ${testData.il} - ${testData.buyukluk}`);
+  console.log(`[TEST] Aktif Socket.IO bağlantıları: ${io.engine.clientsCount}`);
+  console.log(`[TEST] Bağlı client ID'leri:`, Array.from(io.sockets.sockets.keys()));
+
+  // API clientlara gönder
+  sendToAPIClients(testData);
+
+  // Socket.IO (OBS overlay) clientlara gönder
+  io.emit("yeni_deprem", testData);
+  console.log(`[TEST] Socket.IO emit tamamlandı`);
+
+  res.json({
+    status: "success",
+    message: "Test deprem bildirimi gonderildi",
+    data: testData,
+    sent_to: {
+      api_clients: activeAPIConnections.size,
+      websocket_clients: io.engine.clientsCount,
+    },
   });
 });
 
