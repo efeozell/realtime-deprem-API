@@ -108,7 +108,7 @@ class DepremService {
       return;
     }
 
-    if (buyukluk > 0.5) {
+    if (buyukluk < 0.5) {
       console.log(`[GIRDI] Dusuk Buyukluk: ${p.flynn_region} (${buyukluk}), yayinlanmadi`);
       return;
     }
