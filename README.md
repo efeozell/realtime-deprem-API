@@ -2,7 +2,14 @@
 
 Yayincilarin OBS'de kullanabilecegi bir API tasarladim ve birde client olusturdum, yayinda anlik olarak ayarladigim siddette gore ve yaptigim filtrelemelere gore anlik olarak yayinda OBS'in tarayici eklentisi sayesinde gozukmesini saglayacaktir binlerce kisi anlik olarak siddetli bir deprem oldugunda panik yapiyor anlik olarak bilgi kirliligi olmamasi ve yayini izleyen izleyicilerin bilgilenmesi ve onlem almasi icin tasarladigim bu projede umarim faydali olur.
 
-![Uygulama Ekran Kaydi](https://res.cloudinary.com/daxv08juo/video/upload/v1763578694/deprem_bildirim_jkbdxx.mp4)
+## Projenin Videosu
+
+<video width="100%" controls>
+  <source src="https://res.cloudinary.com/daxv08juo/video/upload/v1763578694/deprem_bildirim_jkbdxx.mp4" type="video/mp4">
+  <a href="https://res.cloudinary.com/daxv08juo/video/upload/v1763578694/deprem_bildirim_jkbdxx.mp4"></a>
+</video>
+
+> 💡 **Not:** Video görünmüyorsa [buraya tıklayarak](https://res.cloudinary.com/daxv08juo/video/upload/v1763578694/deprem_bildirim_jkbdxx.mp4) izleyebilirsiniz.
 
 ## 🛠️ Nasıl Çalışıyor? (Teknik Akış)
 
